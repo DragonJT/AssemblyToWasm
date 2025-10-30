@@ -78,7 +78,7 @@ class Parser
 
         Expect(TokenKind.LBrace);
         var locals = ParseLocals().ToArray();
-        var bytecode = ParseBody().ToArray();
+        var bytecode = ParseBody(0).ToArray();
         Expect(TokenKind.RBrace);
 
         return new WasmFunction(export, name, returnType, parameters, locals, bytecode);
@@ -87,7 +87,7 @@ class Parser
     private List<Local> ParseLocals()
     {
         List<Local> locals = [];
-        while (MatchKeyword("local"))
+        while (Match(TokenKind.Semicolon))
         {
             Valtype type = WasmEmitter.GetValtype(Expect(TokenKind.Identifier).Lexeme);
             do
@@ -116,44 +116,85 @@ class Parser
         return list;
     }
 
-    private List<WasmCode> ParseBody()
+    private List<WasmCode> ParseBody(int depthToLoop)
     {
         var code = new List<WasmCode>();
         while (Peek().Kind != TokenKind.RBrace)
         {
-            code.Add(ParseInstruction());
+            var opParts = new List<string>();
+
+            var first = Expect(TokenKind.Identifier);
+            opParts.Add(first.Lexeme);
+
+            while (Match(TokenKind.Dot))
+            {
+                var seg = Expect(TokenKind.Identifier);
+                opParts.Add(seg.Lexeme);
+            }
+
+            string op = string.Join('.', opParts);
+
+            if (op == "int.const")
+            {
+                code.Add(new WasmCode(Opcode.i32_const, Expect(TokenKind.Integer).Lexeme));
+            }
+            else if (op == "int.mul")
+            {
+                code.Add(new WasmCode(Opcode.i32_mul));
+            }
+            else if (op == "int.add")
+            {
+                code.Add(new WasmCode(Opcode.i32_add));
+            }
+            else if (op == "int.lt_s")
+            {
+                code.Add(new WasmCode(Opcode.i32_lt_s));
+            }
+            else if (op == "int.eqz")
+            {
+                code.Add(new WasmCode(Opcode.i32_eqz));
+            }
+            else if (op == "call")
+            {
+                code.Add(new WasmCode(Opcode.call, Expect(TokenKind.Identifier).Lexeme));
+            }
+            else if (op == "break")
+            {
+                code.Add(new WasmCode(Opcode.br, depthToLoop.ToString()));
+            }
+            else if (op == "local.get")
+            {
+                code.Add(new WasmCode(Opcode.get_local, Expect(TokenKind.Identifier).Lexeme));
+            }
+            else if(op == "local.set")
+            {
+                code.Add(new WasmCode(Opcode.set_local, Expect(TokenKind.Identifier).Lexeme));   
+            }
+            else if (op == "loop")
+            {
+                code.Add(new WasmCode(Opcode.block, "void"));
+                code.Add(new WasmCode(Opcode.loop, "void"));
+                Expect(TokenKind.LBrace);
+                code.AddRange(ParseBody(1));
+                Expect(TokenKind.RBrace);
+                code.Add(new WasmCode(Opcode.br, "0"));
+                code.Add(new WasmCode(Opcode.end));
+                code.Add(new WasmCode(Opcode.end));
+            }
+            else if (op == "if")
+            {
+                code.Add(new WasmCode(Opcode.@if, "void"));
+                Expect(TokenKind.LBrace);
+                code.AddRange(ParseBody(depthToLoop + 1));
+                Expect(TokenKind.RBrace);
+                code.Add(new WasmCode(Opcode.end));
+            }
+            else
+            {
+                throw new Exception($"Unknown instruction: {op}");
+            }
         }
         return code;
-    }
-
-    private WasmCode ParseInstruction()
-    {
-        var opParts = new List<string>();
-
-        var first = Expect(TokenKind.Identifier);
-        opParts.Add(first.Lexeme);
-
-        while (Match(TokenKind.Dot))
-        {
-            var seg = Expect(TokenKind.Identifier);
-            opParts.Add(seg.Lexeme);
-        }
-
-        string op = string.Join('.', opParts);
-
-        if (op == "int.const")
-        {
-            return new WasmCode(Opcode.i32_const, Expect(TokenKind.Integer).Lexeme);
-        }
-        if (op == "int.add")
-        {
-            return new WasmCode(Opcode.i32_add);
-        }
-        if (op == "call")
-        {
-            return new WasmCode(Opcode.call, Expect(TokenKind.Identifier).Lexeme);
-        }
-        throw new Exception($"Unknown instruction: {op}");
     }
 
     private Token Peek(int look = 0) => (_i + look) < _toks.Count ? _toks[_i + look] : _toks[^1];

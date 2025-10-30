@@ -310,6 +310,7 @@ static class WasmEmitter
             }
             else
             {
+                if (instruction.Value != "") Console.WriteLine($"{instruction.Opcode} ignores value {instruction.Value}.");
                 codeBytes.Add((byte)instruction.Opcode);
             }
         }
