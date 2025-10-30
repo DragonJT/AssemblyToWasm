@@ -1,4 +1,4 @@
-namespace AssemblyToWasm;
+namespace AsmLike;
 
 using System.Text;
 
@@ -7,17 +7,9 @@ class Parser
     private readonly List<Token> _toks;
     private int _i;
 
-    public Parser(IEnumerable<Token> tokens)
+    public Parser(List<Token> tokens)
     {
         _toks = [.. tokens];
-    }
-
-    bool MatchKeyword(string keyword)
-    {
-        var peek = Peek();
-        bool match = peek.Kind == TokenKind.Keyword && peek.Lexeme == keyword;
-        if (match) Advance();
-        return match;
     }
 
     public (WasmFunction[], WasmImportFunction[]) Parse()
@@ -220,6 +212,14 @@ class Parser
         return false;
     }
 
+    private bool MatchKeyword(string keyword)
+    {
+        var peek = Peek();
+        bool match = peek.Kind == TokenKind.Keyword && peek.Lexeme == keyword;
+        if (match) Advance();
+        return match;
+    }
+    
     private Token ExpectKeyword(string keyword)
     {
         var tk = Peek();

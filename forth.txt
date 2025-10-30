@@ -1,0 +1,39 @@
+
+import void CreateCanvas()
+{
+    var canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 600;
+    document.body.appendChild(canvas);
+    var ctx = canvas.getContext('2d');
+    globals.ctx = ctx;
+}
+
+import void Clear(int r, int g, int b)
+{
+    globals.ctx.fillStyle = 'rgb('+r+','+g+','+b+', 255)';
+    globals.ctx.fillRect(0,0,globals.ctx.canvas.width, globals.ctx.canvas.height);
+}
+
+import void FillSquare(int x, int y, int radius, int r, int g, int b)
+{
+    globals.ctx.fillStyle = 'rgb('+r+','+g+','+b+', 255)';
+    globals.ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+}
+
+import void RequestAnimationFrame()
+{
+    requestAnimationFrame(exports.Update);
+}
+
+int x { 100 155 + }
+
+export void Update()
+{
+    x 0 0 Clear RequestAnimationFrame
+}
+
+export void Main()
+{
+    CreateCanvas 0 0 0 Clear RequestAnimationFrame
+}

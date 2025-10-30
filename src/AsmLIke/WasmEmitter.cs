@@ -1,5 +1,5 @@
 
-namespace AssemblyToWasm;
+namespace AsmLike;
 
 using System.Text;
 
