@@ -29,7 +29,8 @@ enum TokenKind
     Percent,        // %
     Equal,          // =
     Arrow,          // ->
-
+    GT,             // >
+    LT,             // <
     Unknown
 }
 
@@ -115,6 +116,8 @@ sealed class Lexer
                 case '/': yield return MakeSingle(TokenKind.Slash, leading); continue;
                 case '%': yield return MakeSingle(TokenKind.Percent, leading); continue;
                 case '=': yield return MakeSingle(TokenKind.Equal, leading); continue;
+                case '<': yield return MakeSingle(TokenKind.LT, leading); continue;
+                case '>': yield return MakeSingle(TokenKind.GT, leading); continue;
                 case '"': yield return ConsumeString(leading); continue;
             }
 

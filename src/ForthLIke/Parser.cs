@@ -104,10 +104,10 @@ class Parser
     {
         var tokens = new List<Token>();
         var depth = 0;
-        while (Peek().Kind != TokenKind.RBrace)
+        while (true)
         {
             if (Peek().Kind == TokenKind.LBrace) depth++;
-            if (Peek().Kind == TokenKind.RBrace)
+            else if (Peek().Kind == TokenKind.RBrace)
             {
                 depth--;
                 if (depth < 0)

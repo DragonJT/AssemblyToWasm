@@ -20,12 +20,30 @@ class AsmEmitter
         var code = new StringBuilder();
         foreach (var t in tokens)
         {
-            if (t.Kind == TokenKind.Identifier)
+            if (t.Kind == TokenKind.Keyword)
+            {
+                if (t.Lexeme == "load")
+                {
+                    code.AppendLine(indentString + "int.load");
+                }
+                else if (t.Lexeme == "store")
+                {
+                    code.AppendLine(indentString + "int.store");
+                }
+                else if (t.Lexeme == "if")
+                {
+                    code.AppendLine(indentString + "if");
+                }
+                else
+                {
+                    throw new Exception("Unexpected keyword " + t.Lexeme);
+                }
+            }
+            else if (t.Kind == TokenKind.Identifier)
             {
                 if (globalInfos.TryGetValue(t.Lexeme, out GlobalInfo? globalInfo))
                 {
                     code.AppendLine(indentString + "int.const " + globalInfo.MemLocation);
-                    code.AppendLine(indentString + "int.load ");
                 }
                 else
                 {
@@ -36,9 +54,30 @@ class AsmEmitter
             {
                 code.AppendLine(indentString + "int.const " + t.Lexeme);
             }
-            else if(t.Kind == TokenKind.Plus)
+            else if (t.Kind == TokenKind.Plus)
             {
                 code.AppendLine(indentString + "int.add");
+            }
+            else if (t.Kind == TokenKind.GT)
+            {
+                code.AppendLine(indentString + "int.gt_s");
+            }
+            else if (t.Kind == TokenKind.LT)
+            {
+                code.AppendLine(indentString + "int.lt_s");
+            }
+            else if (t.Kind == TokenKind.LBrace)
+            {
+                code.AppendLine(indentString + "{");
+                depth++;
+                indentString = new string(' ', depth * 4);
+
+            }
+            else if(t.Kind == TokenKind.RBrace)
+            {
+                depth--;
+                indentString = new string(' ', depth * 4);
+                code.AppendLine(indentString + "}");
             }
             else
             {
