@@ -150,6 +150,10 @@ class Parser
             {
                 code.Add(new WasmCode(Opcode.i32_lt_s));
             }
+            else if (op == "int.gt_s")
+            {
+                code.Add(new WasmCode(Opcode.i32_gt_s));
+            }
             else if (op == "int.eqz")
             {
                 code.Add(new WasmCode(Opcode.i32_eqz));
@@ -166,9 +170,17 @@ class Parser
             {
                 code.Add(new WasmCode(Opcode.get_local, Expect(TokenKind.Identifier).Lexeme));
             }
-            else if(op == "local.set")
+            else if (op == "local.set")
             {
-                code.Add(new WasmCode(Opcode.set_local, Expect(TokenKind.Identifier).Lexeme));   
+                code.Add(new WasmCode(Opcode.set_local, Expect(TokenKind.Identifier).Lexeme));
+            }
+            else if (op == "int.load")
+            {
+                code.Add(new WasmCode(Opcode.i32_load));
+            }
+            else if (op == "int.store")
+            {
+                code.Add(new WasmCode(Opcode.i32_store));
             }
             else if (op == "loop")
             {
@@ -179,6 +191,7 @@ class Parser
                 Expect(TokenKind.RBrace);
                 code.Add(new WasmCode(Opcode.br, "0"));
                 code.Add(new WasmCode(Opcode.end));
+
                 code.Add(new WasmCode(Opcode.end));
             }
             else if (op == "if")

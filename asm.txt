@@ -1,37 +1,86 @@
+
+import void CreateCanvas()
+{
+        var canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 600;
+        document.body.appendChild(canvas);
+        var ctx = canvas.getContext('2d');
+        globals.ctx = ctx;
+}
+
+import void Clear(int r, int g, int b)
+{
+        globals.ctx.fillStyle = 'rgb('+r+','+g+','+b+', 255)';
+        globals.ctx.fillRect(0,0,globals.ctx.canvas.width, globals.ctx.canvas.height);
+}
+
+import void FillSquare(int x, int y, int radius, int r, int g, int b)
+{
+        globals.ctx.fillStyle = 'rgb('+r+','+g+','+b+', 255)';
+        globals.ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+}
+
+import void RequestAnimationFrame()
+{
+        requestAnimationFrame(exports.Update);
+}
+
 import void Print(int i)
 {
     console.log(i);
 }
 
-export void Run()
+export void Update()
 {
-    ; int i
+    // Clear(120,120,120)
+    int.const 120
+    int.const 120
+    int.const 120
+    call Clear
 
+    // RequestAnimationFrame()
+    call RequestAnimationFrame
+
+    // FillSquare(p, 200, 50, 255, 0, 0) with p at addr 0
     int.const 0
-    local.set i
+    int.load
+    int.const 200
+    int.const 50
+    int.const 255
+    int.const 0
+    int.const 0
+    call FillSquare
 
-    loop{
-        // if (!(i < 10)) break
-        local.get i
-        int.const 10
-        int.lt_s
-        int.eqz
-        if{
-            break
-        }
+    // p = p + 1   (addr 0)
+    int.const 0
+    int.const 0
+    int.load
+    int.const 1
+    int.add
+    int.store
 
-        // Print(i * 2 + 1)
-        local.get i
-        int.const 2
-        int.mul
-        int.const 1
-        int.add
-        call Print
-
-        // i++
-        local.get i
-        int.const 1
-        int.add
-        local.set i
+    // if (p > 800) { p = 0; }
+    int.const 0
+    int.load
+    call Print
+    int.const 0
+    int.load
+    int.const 800
+    int.gt_s
+    if{
+        int.const 0
+        int.const 0
+        int.store
     }
+}
+
+export void Main()
+{
+    call CreateCanvas
+    int.const 0
+    int.const 0
+    int.const 0
+    call Clear
+    call RequestAnimationFrame
 }

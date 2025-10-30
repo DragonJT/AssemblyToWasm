@@ -7,7 +7,7 @@ static class Compiler
         var lexer = new Lexer(source, ["export", "import"]);
         var parser = new Parser(lexer.Tokenize());
         var (funcs, importFuncs) = parser.Parse();
-        var html = WasmEmitter.Emit(funcs, importFuncs);
+        var html = WasmEmitter.Emit(funcs, importFuncs, true);
         File.WriteAllText("index.html", html);
     }
 }

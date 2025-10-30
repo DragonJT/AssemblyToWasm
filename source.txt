@@ -1,6 +1,8 @@
 
 class Program
 {
+    static int p = 0;
+
     [import]
     static void CreateCanvas()
     {
@@ -37,11 +39,15 @@ class Program
     {
         Clear(120,120,120);
         RequestAnimationFrame();
-        FillSquare(200,200,50,255,0,0);
+        FillSquare(p,200,50,255,0,0);
+        p++;
+        if(p>800){
+            p=0;
+        }
     }
 
     [export]
-    static void Run()
+    static void Main()
     {
         CreateCanvas();
         Clear(0,0,0);

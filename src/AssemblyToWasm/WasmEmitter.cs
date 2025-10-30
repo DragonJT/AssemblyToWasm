@@ -32,6 +32,8 @@ enum Opcode
     i32_trunc_f32_s = 0xa8,
     f32_load = 0x2a,
     f32_store = 0x38,
+    i32_store = 0x36,
+    i32_load = 0x28,
     i32_mul = 0x6c,
     i32_add = 0x6a,
     i32_sub = 0x6b,
@@ -308,6 +310,14 @@ static class WasmEmitter
                 var id = uint.Parse(instruction.Value);
                 codeBytes.AddRange([(byte)Opcode.br, .. UnsignedLEB128(id)]);
             }
+            else if (instruction.Opcode == Opcode.i32_load)
+            {
+                codeBytes.AddRange([(byte)Opcode.i32_load, 0x00, 0x00]); //align, offset
+            }
+            else if(instruction.Opcode == Opcode.i32_store)
+            {
+                codeBytes.AddRange([(byte)Opcode.i32_store, 0x00, 0x00]); //align, offset
+            }
             else
             {
                 if (instruction.Value != "") Console.WriteLine($"{instruction.Opcode} ignores value {instruction.Value}.");
@@ -317,7 +327,7 @@ static class WasmEmitter
         return Vector([.. Vector([.. localBytes]), .. codeBytes, (byte)Opcode.end]);
     }
 
-    public static string Emit(WasmFunction[] functions, WasmImportFunction[] importFunctions)
+    public static string Emit(WasmFunction[] functions, WasmImportFunction[] importFunctions, bool memory)
     {
         Dictionary<string, uint> functionIDs = [];
         foreach (var f in importFunctions)
@@ -328,7 +338,6 @@ static class WasmEmitter
         {
             functionIDs.Add(f.Name, (uint)functionIDs.Count);
         }
-
 
         List<byte[]> codeSection = [];
         foreach (var f in functions)
@@ -344,6 +353,19 @@ static class WasmEmitter
                 ..String(f.Name),
                 (byte)ExportType.Func,
                 ..UnsignedLEB128(functionIDs[f.Name])
+            ]);
+        }
+
+        if (memory)
+        {
+            importSection.Add([
+                ..String("env"),
+                ..String("memory"),
+                (byte)ExportType.Mem,
+                /* limits https://webassembly.github.io/spec/core/binary/types.html#limits -
+                indicates a min memory size of one page */
+                0x00,
+                ..UnsignedLEB128(10),
             ]);
         }
 
@@ -377,6 +399,8 @@ static class WasmEmitter
             exportSection.Add([.. String(f.Name), (byte)ExportType.Func, .. UnsignedLEB128(functionIDs[f.Name])]);
         }
 
+        
+
         byte[] wasm = [
             .. MagicModuleHeader,
             .. ModuleVersion,
@@ -386,6 +410,8 @@ static class WasmEmitter
             .. Section(SectionType.Export, [..exportSection]),
             .. Section(SectionType.Code, [..codeSection])];
 
+        //File.WriteAllBytes("run.wasm", wasm);
+
         StringBuilder importString = new();
         foreach (var f in importFunctions)
         {
@@ -394,7 +420,10 @@ static class WasmEmitter
             importString.AppendLine(f.Code);
             importString.AppendLine("}");
         }
-
+        if (memory)
+        {
+            importString.AppendLine("imports.env.memory = new WebAssembly.Memory({ initial: 10, maximum: 10 });");
+        }
         string wasmString = string.Join(",", wasm.Select(b => "0x" + b.ToString("X2")));
         var html = @"
 <!DOCTYPE html>
@@ -417,7 +446,7 @@ importString
 WebAssembly.instantiate(wasmBytecode, imports)
   .then(module => {
     exports = module.instance.exports;
-    console.log(module.instance.exports.Run());
+    console.log(module.instance.exports.Main());
   })
   .catch(error => {
     console.error('Error:', error);
