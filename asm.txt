@@ -26,11 +26,6 @@ import void RequestAnimationFrame()
         requestAnimationFrame(exports.Update);
 }
 
-import void Print(int i)
-{
-    console.log(i);
-}
-
 export void Update()
 {
     // Clear(120,120,120)
@@ -61,9 +56,6 @@ export void Update()
     int.store
 
     // if (p > 800) { p = 0; }
-    int.const 0
-    int.load
-    call Print
     int.const 0
     int.load
     int.const 800
