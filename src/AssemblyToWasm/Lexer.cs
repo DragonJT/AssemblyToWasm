@@ -1,3 +1,4 @@
+namespace AssemblyToWasm;
 
 using System.Text;
 

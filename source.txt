@@ -1,0 +1,15 @@
+
+class Program
+{
+    [import]
+    static void Print(int i)
+    {
+        console.log(i);
+    }
+
+    [export]
+    static void Run()
+    {
+        Print(2+2);
+    }
+}

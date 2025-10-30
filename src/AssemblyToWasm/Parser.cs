@@ -1,5 +1,4 @@
-
-// ==== Parser ====
+namespace AssemblyToWasm;
 
 using System.Text;
 
@@ -150,7 +149,7 @@ class Parser
         {
             return new WasmCode(Opcode.i32_add);
         }
-        if(op == "call")
+        if (op == "call")
         {
             return new WasmCode(Opcode.call, Expect(TokenKind.Identifier).Lexeme);
         }

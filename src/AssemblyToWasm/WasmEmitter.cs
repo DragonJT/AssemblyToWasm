@@ -1,4 +1,6 @@
 
+namespace AssemblyToWasm;
+
 using System.Text;
 
 enum Opcode
@@ -98,7 +100,7 @@ static class Printer
         result += ")";
         return result;
     }
-    
+
     public static string PrintFunction(this WasmFunction f)
     {
         StringBuilder builder = new();
@@ -113,7 +115,7 @@ static class Printer
         return builder.ToString();
     }
 
-    
+
     public static string PrintImportFunction(this WasmImportFunction f)
     {
         StringBuilder builder = new();
