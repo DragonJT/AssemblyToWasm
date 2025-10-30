@@ -2,16 +2,49 @@
 class Program
 {
     [import]
-    static void Print(int i)
+    static void CreateCanvas()
     {
-        console.log(i);
+        var canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 600;
+        document.body.appendChild(canvas);
+        var ctx = canvas.getContext('2d');
+        globals.ctx = ctx;
+    }
+
+    [import]
+    static void Clear(int r, int g, int b)
+    {
+        globals.ctx.fillStyle = 'rgb('+r+','+g+','+b+', 255)';
+        globals.ctx.fillRect(0,0,globals.ctx.canvas.width, globals.ctx.canvas.height);
+    }
+
+    [import]
+    static void FillSquare(int x, int y, int radius, int r, int g, int b)
+    {
+        globals.ctx.fillStyle = 'rgb('+r+','+g+','+b+', 255)';
+        globals.ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+    }
+
+    [import]
+    static void RequestAnimationFrame()
+    {
+        requestAnimationFrame(exports.Update);
+    }
+
+    [export]
+    static void Update()
+    {
+        Clear(120,120,120);
+        RequestAnimationFrame();
+        FillSquare(200,200,50,255,0,0);
     }
 
     [export]
     static void Run()
     {
-        for(var i=0;i<8;i++){
-            Print(i*5+2);
-        }
+        CreateCanvas();
+        Clear(0,0,0);
+        RequestAnimationFrame();
     }
 }
