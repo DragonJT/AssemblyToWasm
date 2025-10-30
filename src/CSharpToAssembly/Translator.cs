@@ -247,26 +247,51 @@ namespace CSharpToAssembly
                         return;
 
                     case AssignmentExpressionSyntax asn:
-                        // p = <expr>
-                        if (asn.Left is IdentifierNameSyntax lid && IsFieldP(lid))
                         {
-                            // address first, then value, then store:
-                            _sb.AppendLine($"    int.const {FieldAddr}");
-                            EmitExpression(asn.Right, wantValue: true); // leaves value on top
-                            _sb.AppendLine("    int.store");
-                            if (wantValue) EmitLoadP(); // if used as r-value
-                            return;
+                            // p <op>= rhs
+                            if (asn.Left is IdentifierNameSyntax lid && lid.Identifier.Text == "p")
+                            {
+                                // choose the op
+                                string? op = asn.Kind() switch
+                                {
+                                    SyntaxKind.AddAssignmentExpression => "int.add",
+                                    SyntaxKind.SubtractAssignmentExpression => "int.sub",
+                                    SyntaxKind.MultiplyAssignmentExpression => "int.mul",
+                                    SyntaxKind.DivideAssignmentExpression => "int.div_s",
+                                    _ => null,
+                                };
+
+                                if (op != null)
+                                {
+                                    // address-first pattern
+                                    _sb.AppendLine("    int.const 0"); // addr kept for store
+                                    _sb.AppendLine("    int.const 0"); // addr for load
+                                    _sb.AppendLine("    int.load");    // p
+                                    EmitExpression(asn.Right, wantValue: true); // rhs
+                                    _sb.AppendLine($"    {op}");       // p <op> rhs
+                                    _sb.AppendLine("    int.store");   // write back
+
+                                    // if the assignment's value is used, reload it
+                                    // (only needed if your caller asked for value)
+                                    // if (wantValue)
+                                    // {
+                                    //     _sb.AppendLine("    int.const 0");
+                                    //     _sb.AppendLine("    int.load");
+                                    // }
+                                    return;
+                                }
+                                // simple assignment: p = rhs
+                                if (asn.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                                {
+                                    _sb.AppendLine("    int.const 0");           // addr
+                                    EmitExpression(asn.Right, wantValue: true);  // value
+                                    _sb.AppendLine("    int.store");
+                                    // if (wantValue) { _sb.AppendLine("    int.const 0"); _sb.AppendLine("    int.load"); }
+                                    return;
+                                }
+                            }
+                            break;
                         }
-                        // local = <expr>
-                        if (asn.Left is IdentifierNameSyntax lcl)
-                        {
-                            EmitExpression(asn.Right, true);
-                            _sb.AppendLine($"    local.set {lcl.Identifier.Text}");
-                            if (wantValue) _sb.AppendLine($"    local.get {lcl.Identifier.Text}");
-                            return;
-                        }
-                        _sb.AppendLine("    // unsupported assignment");
-                        return;
 
                     case LiteralExpressionSyntax lit when lit.IsKind(SyntaxKind.NumericLiteralExpression):
                         if (wantValue) _sb.AppendLine($"    int.const {lit.Token.ValueText}");

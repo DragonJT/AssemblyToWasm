@@ -40,7 +40,7 @@ class Program
         Clear(120,120,120);
         RequestAnimationFrame();
         FillSquare(p,200,50,255,0,0);
-        p++;
+        p+=3;
         if(p>800){
             p=0;
         }
